@@ -4,6 +4,7 @@ import './App.css'
 import Search from './components/Search';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { updateSearchCount } from '../appwrite';
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -23,7 +24,7 @@ function App() {
   const [debouncedSearch, setDebounceSearch] = useState("")
 
   //use debounce to 500ms delay in calling api ,preventing too many api calls
-  useDebounce(()=>setDebounceSearch(searchTerm), 500 , [searchTerm])
+  useDebounce(()=>setDebounceSearch(searchTerm), 700 , [searchTerm])
  
   const fetchMovies = async (query = '') => {
     setIsLoading(true)
@@ -43,9 +44,13 @@ function App() {
         return;
       }
       setMovieList(data.results || []);
+      if (query && data.results.length > 0) {
+        console.log(data.results[0]);
+        await updateSearchCount(query, data.results[0]);
+      
+      } 
     }
     catch(error){
-      console.error(`Error fetching movies ${error}`);
       setErrorMessage('Error fetching movies , Please try again later')
     }
     finally {
@@ -72,9 +77,7 @@ function App() {
         </header>
         <section className="all-movies">
           <h2 className="mt-[40px]">All Movies</h2>
-          {isLoading ? (
-            <Spinner />
-          ) : errorMessage ? (
+          {isLoading ? (<Spinner />) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul>
@@ -89,4 +92,4 @@ function App() {
   );
 }
 
-export default App
+export default App 
