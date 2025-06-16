@@ -1,3 +1,4 @@
+
 import { Databases,Client, Query, ID } from "appwrite";
 
 const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
@@ -11,8 +12,8 @@ const client = new Client()
 
 const database = new Databases(client)
 
-export const updateSearchCount = async (searchTerm , movie) => {
-    console.log(PROJECT_ID, DATABASE_ID, COLLECTION_ID);
+export const updateSearchCount = async (searchTerm, movie) => {
+    // console.log(PROJECT_ID, DATABASE_ID, COLLECTION_ID);
     //1. use the appwrite SDK to search if it already exists in the client
     try {
         const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
@@ -23,7 +24,7 @@ export const updateSearchCount = async (searchTerm , movie) => {
             const doc = result.documents[0];
             await database.updateDocument(DATABASE_ID, COLLECTION_ID, doc.$id , {
                 count : doc.count +1,
-            })  
+            })
         }
         //3.If it doesnt , create a new doc with searchTerm and count =1
         else {
@@ -32,8 +33,21 @@ export const updateSearchCount = async (searchTerm , movie) => {
                 count: 1,
                 movie_id: movie.id,
                 poster_url :`https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            })           
+            })
         }
+    }
+    catch(error) {
+        console.log(error);
+    }
+}
+
+export const getTrendingMovies = async () => {
+    try {
+        const result = database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+            Query.limit(5),
+            Query.orderDesc("count")
+        ])
+        return (await result).documents;
     }
     catch(error) {
         console.log(error);
