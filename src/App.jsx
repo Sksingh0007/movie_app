@@ -23,6 +23,8 @@ function App() {
   const [movieList, setMovieList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   
+  const [trendingError, setTrendingError] = useState("");
+
   const [trendingMovies, setTrendingMovies] = useState([])
   const [debouncedSearch, setDebounceSearch] = useState("")
 
@@ -63,13 +65,18 @@ function App() {
 
   const loadTrendingMovies = async () => {
     try {
-      const movies = await  getTrendingMovies();
+      const movies = await getTrendingMovies();
       setTrendingMovies(movies);
+      setTrendingError(""); // clear previous error
+    } catch (error) {
+      console.error("Failed to fetch trending movies:", error);
+      setTrendingError(
+        "Unable to load trending movies. Please try again later."
+      );
+      setTrendingMovies([]); // clear movies if fetch fails
     }
-    catch (error) {
-      console.log({ error });
-    }
-  }
+  };
+  
 
   useEffect(() => {
     loadTrendingMovies();
@@ -92,9 +99,11 @@ function App() {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
-        {trendingMovies.length > 0 && (
-          <section className="trending">
-            <h2>Trending movies</h2>
+        <section className="trending">
+          <h2>Trending movies</h2>
+          {trendingError ? (
+            <p className="text-red-500">{trendingError}</p>
+          ) : trendingMovies.length > 0 ? (
             <ul>
               {trendingMovies.map((movie, index) => (
                 <li key={movie.$id}>
@@ -102,12 +111,15 @@ function App() {
                   <img
                     src={movie.poster_url}
                     alt={movie.title}
+                    loading="lazy"
                   />
                 </li>
               ))}
             </ul>
-          </section>
-        )}
+          ) : (
+            <p className="text-gray-500">No trending movies found.</p>
+          )}
+        </section>
 
         <section className="all-movies">
           <h2>All Movies</h2>
